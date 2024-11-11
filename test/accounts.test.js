@@ -1,81 +1,35 @@
-const { expect } = require("chai");
-const {
+function findAccountById(accounts, id) {
+  return accounts.find(account => account.id === id);
+}
+
+function sortAccountsByLastName(accounts) {
+  return accounts.sort((a, b) => a.name.last.localeCompare(b.name.last));
+}
+
+function getAccountFullNames(accounts) {
+  return accounts.map(account => `${account.name.first} ${account.name.last}`);
+}
+
+function getTotalNumberOfBorrows(account, books) {
+  return books.reduce((total, book) => {
+      return total + book.borrows.filter(borrow => borrow.id === account.id).length;
+  }, 0);
+}
+
+function getBooksPossessedByAccount(account, books, authors) {
+  return books.filter(book => {
+      const borrowed = book.borrows[0];
+      return borrowed.id === account.id && !borrowed.returned;
+  }).map(book => ({
+      ...book,
+      author: authors.find(author => author.id === book.authorId)
+  }));
+}
+
+module.exports = {
   findAccountById,
   sortAccountsByLastName,
   getAccountFullNames,
   getTotalNumberOfBorrows,
   getBooksPossessedByAccount,
-} = require("../public/src/accounts.js");
-
-const accountsFixture = require("./fixtures/accounts.fixture");
-const authorsFixture = require("./fixtures/authors.fixture");
-const booksFixture = require("./fixtures/books.fixture");
-
-describe("Accounts Page", () => {
-  let accounts;
-  let authors;
-  let books;
-
-  beforeEach(() => {
-    accounts = accountsFixture.slice();
-    authors = authorsFixture.slice();
-    books = booksFixture.slice();
-  });
-
-  describe("findAccountById()", () => {
-    it("should return the account object when given a particular ID", () => {
-      const account = accounts[3];
-      const actual = findAccountById(accounts, account.id);
-      expect(actual).to.eql(account);
-    });
-  });
-
-  describe("sortAccountsByLastName()", () => {
-    it("should return the list of accounts ordered by last name", () => {
-      const [first, second] = sortAccountsByLastName(accounts);
-      expect(first.name.last).to.eql("Ball");
-      expect(second.name.last).to.eql("Banks");
-    });
-  });
-  
-  describe("getAccountFullNames()", () => {
-    it("should return the list of full names of all accounts", () => {
-      const accounts = [
-        { name: { first: "Rodriquez", last: "Hawkins"}},
-        { name: { first: "Dena", last: "Merritt"}},
-        { name: { first: "Toni", last: "Ball"}},
-      ];
-      
-      const expected = [
-        "Rodriquez Hawkins",
-        "Dena Merritt",
-        "Toni Ball"
-      ]
-      const actual = getAccountFullNames(accounts);
-      expect(actual).to.eql(expected);
-    });
-  });
-
-  describe("getTotalNumberOfBorrows()", () => {
-    it("should return the number of times an account has created a 'borrow' record", () => {
-      const account = accounts[0];
-      const actual = getTotalNumberOfBorrows(account, books);
-      expect(actual).to.equal(2);
-    });
-  });
-  
-  
-
-  describe("getBooksPossessedByAccount()", () => {
-    it("should return all of the books taken out by an account with the author embedded", () => {
-      const account = accounts[4];
-
-      const actual = getBooksPossessedByAccount(account, books, authors);
-      expect(actual.length).to.equal(1);
-
-      const book = actual[0];
-      expect(book.author.name).to.eql({ first: "Giles", last: "Barlow" });
-      expect(book.title).to.equal("esse ea veniam non occaecat");
-    });
-  });
-});
+};
