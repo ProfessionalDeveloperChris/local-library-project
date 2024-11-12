@@ -1,104 +1,72 @@
 const { expect } = require("chai");
 const {
-  getTotalBooksCount,
-  getTotalAccountsCount,
-  getBooksBorrowedCount,
-  getMostCommonGenres,
-  getMostPopularBooks,
-  getMostPopularAuthors,
-} = require("../public/src/home.js");
-
+  findAccountById,
+  sortAccountsByLastName,
+  getAccountFullNames,
+  getTotalNumberOfBorrows,
+  getBooksPossessedByAccount,
+} = require("../public/src/accounts.js");
+const accountsFixture = require("./fixtures/accounts.fixture");
 const authorsFixture = require("./fixtures/authors.fixture");
 const booksFixture = require("./fixtures/books.fixture");
-
-describe("Home Page", () => {
+describe("Accounts Page", () => {
+  let accounts;
   let authors;
   let books;
-
   beforeEach(() => {
+    accounts = accountsFixture.slice();
     authors = authorsFixture.slice();
     books = booksFixture.slice();
   });
-
-  describe("getTotalBooksCount()", () => {
-    it("should return the total number of books in the array", () => {
-      const actual = getTotalBooksCount([{}, {}]);
+  describe("findAccountById()", () => {
+    it("should return the account object when given a particular ID", () => {
+      const account = accounts[3];
+      const actual = findAccountById(accounts, account.id);
+      expect(actual).to.eql(account);
+    });
+  });
+  describe("sortAccountsByLastName()", () => {
+    it("should return the list of accounts ordered by last name", () => {
+      const [first, second] = sortAccountsByLastName(accounts);
+      expect(first.name.last).to.eql("Ball");
+      expect(second.name.last).to.eql("Banks");
+    });
+  });
+  
+  describe("getAccountFullNames()", () => {
+    it("should return the list of full names of all accounts", () => {
+      const accounts = [
+        { name: { first: "Rodriquez", last: "Hawkins"}},
+        { name: { first: "Dena", last: "Merritt"}},
+        { name: { first: "Toni", last: "Ball"}},
+      ];
+      
+      const expected = [
+        "Rodriquez Hawkins",
+        "Dena Merritt",
+        "Toni Ball"
+      ]
+      const actual = getAccountFullNames(accounts);
+      expect(actual).to.eql(expected);
+    });
+  });
+  describe("getTotalNumberOfBorrows()", () => {
+    it("should return the number of times an account has created a 'borrow' record", () => {
+      const account = accounts[0];
+      const actual = getTotalNumberOfBorrows(account, books);
       expect(actual).to.equal(2);
     });
-
-    it("should return zero if the array is empty", () => {
-      const actual = getTotalBooksCount([]);
-      expect(actual).to.equal(0);
-    });
   });
-
-  describe("getTotalAccountsCount()", () => {
-    it("should return the total number of accounts in the array", () => {
-      const actual = getTotalAccountsCount([{}, {}]);
-      expect(actual).to.equal(2);
-    });
-
-    it("should return zero if the array is empty", () => {
-      const actual = getTotalAccountsCount([]);
-      expect(actual).to.equal(0);
-    });
-  });
-
-  describe("getBooksBorrowedCount()", () => {
-    it("should return the total number of books that are currently borrowed", () => {
-      const actual = getBooksBorrowedCount(books);
-      expect(actual).to.equal(6);
-    });
-  });
-
-  describe("getMostCommonGenres()", () => {
-    it("should return an ordered list of most common genres", () => {
-      const actual = getMostCommonGenres(books);
-      const [first, second] = [
-        { name: "Science", count: 3 },
-        { name: "Classics", count: 2 },
-      ];
-      expect(actual[0]).to.eql(first);
-      expect(actual[1]).to.eql(second);
-    });
-
-    it("should limit the list to the top five", () => {
-      const actual = getMostCommonGenres(books);
-      expect(actual.length).to.equal(5);
-    });
-  });
-
-  describe("getMostPopularBooks()", () => {
-    it("should return an ordered list of most popular books", () => {
-      const actual = getMostPopularBooks(books);
-      const [first, second] = [
-        { name: "sit eiusmod occaecat eu magna", count: 11 },
-        { name: "ullamco est minim", count: 5 },
-      ];
-      expect(actual[0]).to.eql(first);
-      expect(actual[1]).to.eql(second);
-    });
-
-    it("should limit the list to the top five", () => {
-      const actual = getMostPopularBooks(books);
-      expect(actual.length).to.equal(5);
-    });
-  });
-
-  describe("getMostPopularAuthors()", () => {
-    it("should return an ordered list of most popular authors", () => {
-      const actual = getMostPopularAuthors(books, authors);
-      const [first, second] = [
-        { name: "Susanne Lawson", count: 11 },
-        { name: "Matthews Sanders", count: 5 },
-      ];
-      expect(actual[0]).to.eql(first);
-      expect(actual[1]).to.eql(second);
-    });
-
-    it("should limit the list to the top five", () => {
-      const actual = getMostPopularAuthors(books, authors);
-      expect(actual.length).to.equal(5);
+  
+  
+  describe("getBooksPossessedByAccount()", () => {
+    it("should return all of the books taken out by an account with the author embedded", () => {
+      const account = accounts[4];
+      const actual = getBooksPossessedByAccount(account, books, authors);
+      expect(actual.length).to.equal(1);
+      const book = actual[0];
+      expect(book.author.name).to.eql({ first: "Giles", last: "Barlow" });
+      expect(book.title).to.equal("esse ea veniam non occaecat");
     });
   });
 });
